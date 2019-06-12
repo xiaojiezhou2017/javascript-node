@@ -132,12 +132,134 @@ javascript 高级编程笔记
   str.name = 'zhou'; // 实际上访问 str.name的时候，javascript会创建一个包装对象，但是执行完这一行代码之后随即销毁
   console.log(str.name); // undefined 再次访问str.name的时候，又会新创建一个包装对象，此时的包装对象是没有.name这个属性的
   ```
-- - toFixed 返回的是数字的字符串表示，之前一直以为返回的是数字,并且它不光是指定后面的小数位，而且还有四舍五入的规则，例如
+- toFixed 返回的是数字的字符串表示，之前一直以为返回的是数字,并且它不光是指定后面的小数位，而且还有四舍五入的规则，例如
   ```javascript
   var a = '1.5';
   a.toFixed(0); // 2
   ```
-  - 为什么要使用 charAt 来获取某个位置的字符？用[index]的方式也可以访问
-    在 IE7 中，使用[index]访问，会返回 undefined，ie 有兼容性问题，另外[index]访问超过字符长度的索引，返回的是 undefined. charAt 返回的是空字符串。
-  - subString, subStr, slice 的区别：
-    其中 subStr 未来将被移除，被 subString 替代。主要看 subString 和 slice 的区别:
+- 为什么要使用 charAt 来获取某个位置的字符？用[index]的方式也可以访问
+  在 IE7 中，使用[index]访问，会返回 undefined，ie 有兼容性问题，另外[index]访问超过字符长度的索引，返回的是 undefined. charAt 返回的是空字符串。
+- subString, subStr, slice 的区别：  
+  其中 subStr 未来将被移除，被 substring 替代。主要看 subString 和 slice 的区别:
+  ```javascript
+    var str = 'hello world';
+    str.slice(3, -1) // lo world
+    str.substring(3， -1) // hel subString会把-1转换成0,并且subString(3, -1) 相当于 subString(0, 3)
+  ```
+- 通过 indexOf 查找字符串中所有符合规则的子字符串
+  ```javascript
+  var str = 'hello world  i am teacher hello';
+  var tem = 'ell';
+  var posSet = [];
+  var pos = str.indexOf(tem);
+  while (pos > -1) {
+    posSet.push(pos);
+    pos = str.indexOf(tem, pos + 1);
+  }
+  posSet; // [1, 27]
+  ```
+- toLocaleLowerCase 和 toLocaleUpperCase 一般不知到程序要运行在那种语言环境的情况下最好是使用这两个方法
+- 字符串的 math 本质上和正则表达是的 exec 方法是相同的。
+  — 字符串的 search 方法，返回第一个匹配模式的位置，例如
+  ```javascript
+  var str = 'hello world';
+  str.search(/\s/); // 5
+  ```
+- 对于 str.replace 中特殊字符的理解
+
+```javascript
+var str = '<div id="name" class="wrapper">hello world</div>';
+const reg = /(\w*)="(\w*)"/g;
+str.replace(
+  reg,
+  "匹配整个模式的字符串:$& 匹配字符串的左边内容:$' 匹配字符串的右边内容:$` $属性名:$1, 属性值:$2"
+);
+```
+
+- 对于 str.replace 中第二参数传递函数的理解：  
+   第二个参数是函数时，函数被注入的参数：
+  1. 模式匹配项，模式匹配项在字符串中位置，原始字符串
+  2. 当有分组的时候，参数依此是，匹配的字符串，第一个捕获的分组，第二个捕获的分组.....最后两个参数仍然是模式匹配在字符串中位置，原始字符串
+  ```javascript
+  var str = '<div id="name" class="wrapper">hello world</div>';
+  const reg = /(\w*)="(\w*)"/g;
+  str.replace(reg, (match, $1, $2, pos, source) => {
+    // match id="name" class="wrapper"
+    // $1 id class
+    // $2 name wrapper
+    // pos 模式匹配的字符在字符串中的位置
+    // source 原始字符串
+    console.log('match', match);
+    console.log('$1', $1);
+    console.log('$2', $2);
+    console.log('pos', pos);
+    console.log('source', source);
+    return `属性名:${$1},属性值:${$2}`;
+  });
+  ```
+- split 方法第一个参数不光可以指定字符，还可以指定正则表达式,第二个参数可以用来限定数组的长度。
+
+```javascript
+var colors = 'red,blue,green,yellow';
+colors.split(',', 2); // ['red', 'blue']
+colors.split(/[^,]+/); // ["", ",", ",", ",", ""] 怎么理解前面的""和后面的""
+// 假设colors= ',red,blue,green,yellow,'
+// colors.split(',') = ["", "red", "blue", "green", "yellow", ""]
+```
+
+- localeCompare 方法是比较字母在字母表中的顺序，并且有本地化
+
+```javascript
+'yellow'.localeCompare('black'); // -1
+'balck'.localeCompare('yellow'); // 1
+'yellow'.localeCompare('yellow'); // 0
+```
+
+- String.fromCharCode 接受一个或者多个字符编码，把他们转换成字符串
+
+```javascript
+String.fromCharCode(104, 101); // he
+```
+
+- 对于 encodeURI 和 encodeURIComponent 方法的理解：  
+  ecodeURI 和 encodeURIComponent 可以对 Uri 进行编码，以便发送给浏览器，有效的 Uri 不能包含某些特殊字符，比如空格。而这两个方法是用来给 Uri 进行编码，他们使用特殊的 utf-8 来替换无效的
+  字符，从而让浏览器能够接受和理解。
+  其中 ecodeURI 主要是用于整个 url, ecodeURIcomponent 主要用于部分 url。ecodeURI 不会对属于 Url 特殊字符进行编码，如：/ + # & ?等，而 ecodeURIcomponent 会对所有的特殊字符进行编码例如
+
+  ```javascript
+  var uri = 'http://www.wrox.com/illegal value.htm#start';
+  encodeURI(uri); //"http://www.wrox.com/illegal%20value.htm#start" 只对空格做了编码
+  encodeURIComponent(uri); //"http%3A%2F%2Fwww.wrox.com%2Fillegal%20value.htm%23start" 对所有的特殊字符进行了编码
+  ```
+
+  对应相应的解码 `decodeURI` `decode- URIComponent`
+  其中`escape`和`unescape`已经被废弃
+
+- 在 eval 中创建的变量不会提升。
+- 在 ECMAScript 中，没有指出如何访问 Global 对象，但是浏览器都是把它作为 window 一部分来实现的。所以浏览器下的 Global 是 window 对象的一个子集。因为 window 不仅包含规范内定义的内容，来 还包含了宿主浏览器的一些内容。
+- 舍入方法。  
+  `Math.floor` 向下取证 `Math.ceil` 向上取整 `Math.round`标准的四舍五入
+- 对于 Math.random 的理解:  
+  Math.random 产生的一个`大于等于0` `小于1` 的数，所以要想产生一个闭范围的值。例如
+  ```javascript
+  function getRandomRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min; // 注意这里max - min + 1 开范围的不加1即可
+  }
+  ```
+- 在使用Object.defineProperty定义属性描述的时候，configurable, configurable, wirteable默认为false
+- 在没有Object.defineProperty 可以设置setter getter方法之前，浏览器使用了两个非标准方法__defineGetter__和__defineSetter__这也就是为什么在chrome终端打印对象的时候，会   有这两个方法。使用旧访问器代码如下：
+  ``` javascript
+  var o = {
+      name: 'hello'
+  }
+  o.__defineGetter__('hello', () => {
+      return this.name + 'getter'
+  })
+  o.__defineSetter__('hello', (value) => {
+      this.name = value;
+  })
+  ```
+
+- `Object.getOwnPropertyDescriptor()`只能获取实例属性的描述
+- `Object.getOwnPropertyNames` 获取所有的属性名称，包括不可枚举的
+- instanceOf操作符的理解，只要是实例的原型链上包含f.prototype,那么 instance instanceOf f就会返回true.
