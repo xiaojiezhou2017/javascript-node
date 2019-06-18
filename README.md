@@ -246,20 +246,48 @@ String.fromCharCode(104, 101); // he
     return Math.floor(Math.random() * (max - min + 1)) + min; // 注意这里max - min + 1 开范围的不加1即可
   }
   ```
-- 在使用Object.defineProperty定义属性描述的时候，configurable, configurable, wirteable默认为false
-- 在没有Object.defineProperty 可以设置setter getter方法之前，浏览器使用了两个非标准方法__defineGetter__和__defineSetter__这也就是为什么在chrome终端打印对象的时候，会   有这两个方法。使用旧访问器代码如下：
-  ``` javascript
+- 在使用 Object.defineProperty 定义属性描述的时候，configurable, configurable, wirteable 默认为 false
+- 在没有 Object.defineProperty 可以设置 setter getter 方法之前，浏览器使用了两个非标准方法**defineGetter**和**defineSetter**这也就是为什么在 chrome 终端打印对象的时候，会 有这两个方法。使用旧访问器代码如下：
+
+  ```javascript
   var o = {
-      name: 'hello'
-  }
+    name: 'hello'
+  };
   o.__defineGetter__('hello', () => {
-      return this.name + 'getter'
-  })
-  o.__defineSetter__('hello', (value) => {
-      this.name = value;
-  })
+    return this.name + 'getter';
+  });
+  o.__defineSetter__('hello', value => {
+    this.name = value;
+  });
   ```
 
 - `Object.getOwnPropertyDescriptor()`只能获取实例属性的描述
 - `Object.getOwnPropertyNames` 获取所有的属性名称，包括不可枚举的
-- instanceOf操作符的理解，只要是实例的原型链上包含f.prototype,那么 instance instanceOf f就会返回true.
+- instanceOf 操作符的理解，只要是实例的原型链上包含 f.prototype,那么 instance instanceOf f 就会返回 true.
+- 全局变量会作为 windos 上的一个属性存在，但是没法用 delete 删除。但是直接定义在 window 上的属性可以使用 delete 删除。实际上通过 var 声明的全局变量`[[Configurable]]`设置成 了`false`，所以是不可以删除的
+- setInterval 会出现，原因是后一个间歇调用可能会在前一个间歇调用结束之前启动。（这句话不太理解）
+- loacation 有一个有意思的地方, location 即是 window 的属性也是 document 的属性，通过`window.location`和`document.location`都能访问得到。
+- location 对象下的几个属性: `hash`返回#后面的字符,例如`http://www.baidu.com#hash#abc`返回的是`#hash#abc` `host`返回服务器名称和端口号，返回`www.baidu.com`, `hostname` 返回不带端口号的主机名称`www.baidu.com`, `href`返回完整的 url 信息，location 对象的 toString 方法也会返回同样的值. `pathname`返回 url 的路径名称。 `protocol`返回的是使用的协议`http`或者`https`。 `search`返回的是 url 查询字符串,例如`?name=zhou`
+- 可以通过`location.assign('http://www.baidu.com')`打开一个新的网址，并向历史记录中添加一条记录。和`window.location='www.baidu.com'`,`location.href='www.baidu.com'`
+- 也可以通过修改`location`对象的其他属性来修改 url, `location.hash`修改 url 的 hasn 值。`location.search`给网址添加查询字符串。`location.hostname`修改主机名。 `location.pathname` 修改文件路径 `location.port` 修改 url 的端口。
+- `location.reload`用来重新加载页面，如果没有传任何参数，那么页面将以最有效的方式加载，如果页面自上次请求就没有改变过，那么就是从缓存中加载页面。如果需要强制从服务器下载页面，需要执行`location.reload(true)`
+- 对于 location 上的方法在 chrome 上进行测试，只有一下属性是存在的。树上写的很多都已经废弃了。
+
+```javascript
+with (navigator) {
+  console.log('appCodeName', appCodeName);
+  console.log('appName', appName);
+  console.log('appVersion', appVersion);
+  console.log('cookieEnabled', cookieEnabled);
+  console.log('language', language);
+  console.log('mimeTypes', mimeTypes);
+  console.log('onLine', onLine);
+  console.log('platform', platform);
+  console.log('plugins', plugins);
+  console.log('productSub', productSub);
+  console.log('userAgent', userAgent);
+  console.log('vendor', vendor);
+  console.log('vendorSub', vendorSub);
+}
+```
+- 对于navigator对象来说,有一个方法比较特殊`sendBeacon`方法，可以在页面卸载的时候发送异步请求到服务端。之前的做法是使用beforeUpload，但是浏览器会在页面卸载的时候，丢弃异步请求，通常会发送同步请求，那么此时就会阻碍页面的关闭，造成不好的体验.
