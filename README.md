@@ -411,3 +411,54 @@ function convertToArray(nodes) {
 ```
 
 - 可以通过`parentNode`来访问父节点。通过`previousSibling`和`nextSibling`访问兄弟节点,可以通过`firstChild`和 `lastChild`来访问第一个和最后一个节点。![avatar](./images/1.png)
+
+- `hasChildNodes`这个方法在包含一个或者多个子节点的时候返回 true。
+- 节点的`ownerDocument`指向表示整个文档的文档节点, 即`document对象`。
+- `appenChild`用来添加子节点。`insertBefore` 在参考节点之前添加节点。需要注意的一点，如果 insertBefore 方法中，参考元素为 null，那么就和 appendChild 是一样的。
+
+```javascript
+var node = parent.insertBefor(newNode, null); // 作用和appendChild是一样的
+var node = parent.insertBeofre(newNode, parent.firstChildNode); //
+```
+
+- `replaceChild`接受的两个参数是，要插入的节点和要被替换的节点。
+- `removeChild` 移除节点
+- `cloneNode`克隆节点,参数是一个布尔值，表示要不要深克隆。对于这个方法的理解，例如
+
+```html
+<ul id="ul">
+  <li>1</li>
+  <li>2</li>
+  <li>3</li>
+</ul>
+```
+
+```javascript
+var ulDom = window.ul;
+var copyDom = ulDom.cloneNode(); // 此时执行的是浅克隆，所以只克隆了ul元素，它下面的li元素是没有被克隆的。
+var copyDom = ulDom.cloneNode(true); // 此时执行的深克隆，所以会把他下面的子元素li一块克隆
+```
+
+`需要注意的是:克隆只会克隆元素和元素的特性，并不会克隆和javascirpt相关的属性，例如事件处理程序`
+
+- `normalize`方法，序列化删除多余的文本节点, [例子](http://www.w3school.com.cn/tiy/t.asp?f=jsref_node_normalize)
+- 可以通过`document.documentElement`来访问 html 元素。也可以通过`document.firstChild`和`document.childNodes[0]`
+- 可以通过`document.doctype` 对<!DOCTYPE>的引用
+- 可以通过`document.title`来获取页面展示的 title 或者修改 title
+- 特殊的几个属性`url`, `domain`和`referrer`所有这些信息都存在于请求的 HTTP 头部,通过 javascript 我们可以访问他们。并且这几个的值，只有`document.domain`是可以设置的。并且 document.domain 的设置也是有限制的，不能将属性值设置成 url 中不包含的域,例如
+
+```javascript
+//假设页面来自 p2p.wrox.com 域
+document.domain = 'wrox.com'; // 成功
+document.domain = 'nczonline.net'; // 出错!
+```
+
+浏览器对 domain 属性还有一个限制，即如果域名一开始是“松散的”(loose)，那么不能将它再设 置为“紧绷的”(tight)。换句话说，在将 document.domain 设置为"wrox.com"之后，就不能再将其 设置回"p2p.wrox.com"，否则将会导致错误，如下面的例子所示。
+
+```javascript
+//假设页面来自于 p2p.wrox.com 域
+document.domain = 'wrox.com'; //松散的(成功)
+document.domain = 'p2p.wrox.com'; //紧绷的(出错!)
+```
+
+- 查找元素`document.getElementById`和`document.getElementsByTagName`,不过现在使用`querySelector`和`querySelectorAll`比较多
