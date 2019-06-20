@@ -409,3 +409,5 @@ function convertToArray(nodes) {
   return array;
 }
 ```
+
+- 可以通过`parentNode`来访问父节点。通过`previousSibling`和`nextSibling`访问兄弟节点,可以通过`firstChild`和 `lastChild`来访问第一个和最后一个节点。![avatar](./images/1.png)
