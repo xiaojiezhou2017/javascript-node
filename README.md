@@ -290,4 +290,122 @@ with (navigator) {
   console.log('vendorSub', vendorSub);
 }
 ```
-- 对于navigator对象来说,有一个方法比较特殊`sendBeacon`方法，可以在页面卸载的时候发送异步请求到服务端。之前的做法是使用beforeUpload，但是浏览器会在页面卸载的时候，丢弃异步请求，通常会发送同步请求，那么此时就会阻碍页面的关闭，造成不好的体验.
+
+- 对于 navigator 对象来说,有一个方法比较特殊`sendBeacon`方法，可以在页面卸载的时候发送异步请求到服务端。之前的做法是使用 beforeUpload，但是浏览器会在页面卸载的时候，丢弃异步请求，通常会发送同步请求，那么此时就会阻碍页面的关闭，造成不好的体验.
+- IE 中变态的兼容性问题，今天算是了解了。例如
+
+```javascript
+// 大多数浏览器检测到document.createElement的时候都会返回true，但是ie不会,例如
+typeof document.createElement == 'function'; // false ie8以前，ie9修复了这个问题 typeof docuement.createElement返回的object,在ie中，是通过com实现dom操作而不是通过dom，所以typeof返回的是对象，不是函数
+```
+
+在 ie 中，把方法当作属性访问也可能有问题，例如
+
+```javascript
+var xhr = new ActiveXObject('Microsoft.XMLHttp');
+if (xhr.open) {
+  // 这样的操作在ie下会报错
+}
+// 这个时候可以使用typeof来检查，但是ie下,typeof xhr.open返回的是unknown
+typeof xhr.open; // unknown
+```
+
+所以才有特别变态的检测某个属性是否存在的方法,奇葩,现在应该不会有这样的代码了，不过老代码应该还是有的。
+
+```javascript
+  funciton isHostMethod (object, prop) {
+    var t = typeof object[prop];
+    return t === 'function' ||
+           (!!(t === 'object' && object[prop])) || // ie下有可能返回object,并且此时object[prop]不应该为null
+           t === 'unknown' // ie下
+  }
+```
+
+- 用户代理检测，opera 可以使用 window.opera 对象来检测是否欧朋浏览器，但是在最新版的浏览器中，是无法获取这个属性值的。有待考证。
+- 检测是不是 webkit 浏览器引擎
+
+```javascript
+var reg = /AppleWebKit\/(\S+)/;
+var match = window.navigator.userAgent.match(reg);
+var version = match[1];
+if (match) {
+}
+```
+
+- 检测 KHTML 引擎
+
+```javascript
+var reg = /KHTML\/(\S+)/;
+var reg = /Konqueror\/([^;]+)/;
+```
+
+- 检测 Gecko,火狐的浏览器引擎
+
+```javascript
+var reg = /rv:([^\)]+)\) Gecko\/\d{8}/;
+```
+
+- 检测 ie
+
+```javascript
+var reg = /MSIE ([^;]+)/;
+```
+
+- 识别浏览器，光靠识别渲染引擎，是无法识别浏览器的，比如 Safari 和谷歌的 chrome 浏览器都是使用的 webkit 渲染引擎，只是 javascript 的执行引擎不一样。
+- 几个浏览器的渲染引擎
+
+1. ie Trident [ˈtraɪdnt]
+2. chrome webkit
+3. Safari webkit
+4. Opera Presto ['prɛsto]
+5. NetScape Gecko ['gɛko]
+6. Firefox Gecko
+
+- DOM1 中规定的了 12 中 node 类型
+
+1. `Node.ELEMENT_NODE(1)`
+2. `Node.ATTRIBUTE_NODE(2)`
+3. `Node.TEXT_NODE(3)`
+4. `Node.CDATA_SECTION_NODE(4)`
+5. `Node.ENTITY_REFERENCE_NODE(5)`
+6. `Node.ENTITY_NODE(6)`
+7. `Node.PROCESSING_INSTRUCTION_NODE(7)`
+8. `Node.COMMENT_NODE(8)`
+9. `Node.DOCUMENT_NODE(9)`
+10. `Node.DOCUMENT_TYPE_NODE(10)`
+11. `Node.DOCUMENT_FRAGMENT_NODE(11)`
+12. `Node.NOTATION_NODE(12)`
+    在比较节点类型需要注意的点：
+
+```javascript
+if (somenode.nodeType === Node.ELEMENT_NODE) {
+  // 在ie中是无效的,因为ie没有把Node构造函数给暴露出来
+}
+// 所以兼容比较好的方式
+if (somenode.nodeType === 1) {
+}
+```
+
+`需要注意的一点，并不是所有的节点类型都受浏览器支持`
+
+- 可以通过 nodeName 和 nodeValue，获取节点名称和节点值
+- 可以通过 childNodes,返回一个类数组子节点`NodeList`，比较特别的是，这个`NodeList`是动态的，能够根据 dom 动态变化，并不是快照。
+- childNodes 可以通过`NodeList[0]`或者`NodeList.item(0)`来获取其中的节点
+- childNodes 的兼容性问题:
+
+```javascript
+// 要想把childNodes转换成数组,可以通过下面的方式
+Array.prototype.slice.call(NodeList); // 当然现在最简单并且最语意化的方式是：Array.form(NodeList)
+// 但这种写法在ie8之前是有问题的，ie8之前的dom是根据com实现的，直接使用js对象的写法会报错。兼容性写法如下:
+function convertToArray(nodes) {
+  let array;
+  try {
+    array = Array.prototype.slice.call(nodes);
+  } catch (e) {
+    for (let i = 0, len = array.length; i < len; i++) {
+      array.push(nodes[i]);
+    }
+  }
+  return array;
+}
+```
